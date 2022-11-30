@@ -1,0 +1,3 @@
+- General setup is correct
+- Unsure about the rewards - and the possible actions we can take
+- How is work sent to each data centre, Esther's experiment is to send work randomly to each data centre
