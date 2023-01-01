@@ -16,6 +16,9 @@ class MultiDataCenterEnvironment(gym.Env):
     # ]
     self.datacentres = [{f"{i}": datacentre[machine_id] for (i, machine_id) in enumerate(datacentre)} for datacentre in datacentres]
 
+    self._workload = 0
+    self._workload_datacentre = 0
+
     # Current time of the simulation
     self.current_time = 0
     # End time of the simulation
@@ -24,8 +27,8 @@ class MultiDataCenterEnvironment(gym.Env):
     # [cpu1, cpu2, ..., cpu10, workload_requirement, data_center]
     self.observation_space = spaces.Dict(
       {
-        **{f"{datacentre_number}": spaces.Box(low=0, high=100, shape=(len(datacentre),), dtype=np.float32) for datacentre_number, datacentre in enumerate(self.datacentres)},
-        "workload": spaces.Box(low=0, high=100, shape=(1,), dtype=np.float32),
+        **{f"{datacentre_number}": spaces.Box(low=0, high=100, shape=(len(datacentre),), dtype=np.float64) for datacentre_number, datacentre in enumerate(self.datacentres)},
+        "workload": spaces.Box(low=0, high=100, shape=(1,), dtype=np.float64),
         "workload_datacentre": spaces.Discrete(2),
       }
     )
@@ -39,11 +42,11 @@ class MultiDataCenterEnvironment(gym.Env):
   #   }
     
   def _generate_workload(self):
-    cpu_requirement = np.random() * 100
+    cpu_requirement = np.random.rand() * 100
     return cpu_requirement
   
   def _get_workload_datacentre(self, epsilon=0.5):
-    r = np.random()
+    r = np.random.rand()
     data_centre_to_send_work = self._workload_datacentre
     if r <= epsilon:
       data_centre_to_send_work = 1 - data_centre_to_send_work
@@ -73,7 +76,7 @@ class MultiDataCenterEnvironment(gym.Env):
       "workload": self._workload,
       "workload_datacentre": self._workload_datacentre,
     }
-    info = None # Not sure what to use this for
+    info = {} # Not sure what to use this for
 
     return observation, info
   
@@ -82,7 +85,7 @@ class MultiDataCenterEnvironment(gym.Env):
     observation = None
     reward = 0
     terminated = self.current_time == self.end_time
-    info = None # Not sure what to use this for
+    info = {} # Not sure what to use this for
     if action == 10:
       # Do nothing
       reward = 0
