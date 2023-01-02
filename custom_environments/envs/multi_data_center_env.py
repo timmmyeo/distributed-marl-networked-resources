@@ -71,7 +71,7 @@ class MultiDataCenterEnvironment(gym.Env):
   def step(self, action):
     observation = None
     reward = 0
-    done = self.current_time >= (len(self.machines_data) - 2)
+    done = self.current_time >= (len(self.machines_data[0]) - 2)
     info = {} # Not sure what to use this for
 
     # Apply the action
@@ -81,14 +81,15 @@ class MultiDataCenterEnvironment(gym.Env):
     else:
       machine_picked = action
       spare_capacity = 100 - self._machines_curr_state[machine_picked]
+      # reward = min(100, int(spare_capacity / self._workload) * 100)
       if spare_capacity >= self._workload:
           reward = 100
       else:
-        reward = max(0, int(spare_capacity - self._workload))
+        reward = int(spare_capacity)
 
       # Half the reward if the datacentre is not where the workload originated
-        if self._workload_datacentre != self.datacentre_mapping[machine_picked]:
-          reward /= 2
+      if self._workload_datacentre != self.datacentre_mapping[machine_picked]:
+        reward /= 2
     
     # Advance the time
     self.current_time += 1
