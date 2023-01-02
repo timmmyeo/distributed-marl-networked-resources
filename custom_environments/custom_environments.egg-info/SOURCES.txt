@@ -5,5 +5,4 @@ custom_environments.egg-info/dependency_links.txt
 custom_environments.egg-info/requires.txt
 custom_environments.egg-info/top_level.txt
 envs/__init__.py
-envs/multi_data_center_env copy.py
 envs/multi_data_center_env.py

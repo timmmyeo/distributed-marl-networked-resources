@@ -1,5 +1,5 @@
-import gym
-from gym import spaces
+import gymnasium as gym
+from gymnasium import spaces
 import pandas as pd
 import numpy as np
 
@@ -18,7 +18,7 @@ class MultiDataCenterEnvironment(gym.Env):
     return data_centre_to_send_work
 
   def __init__(self, machines_data: list[list[np.float32]], datacentre_mapping: dict[int, int], num_datacentres: int):
-    # super(MultiDataCenterEnvironment, self).__init__()
+    super(MultiDataCenterEnvironment, self).__init__()
     
     assert len(machines_data) > 0
     assert len(machines_data[0]) > 0
