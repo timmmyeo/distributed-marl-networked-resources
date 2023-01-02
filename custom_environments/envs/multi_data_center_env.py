@@ -26,6 +26,7 @@ class MultiDataCenterEnvironment(gym.Env):
 
     self.num_datacentres = num_datacentres
     self.machines_data = machines_data
+    self.datacentre_mapping = datacentre_mapping
 
     # Current time of the simulation
     self.current_time = 0
@@ -63,7 +64,7 @@ class MultiDataCenterEnvironment(gym.Env):
     self._machines_curr_state: list[np.float32] = [machine_data[0] for machine_data in self.machines_data]
 
     observation = {
-      **{f"{datacentre_number}": datacentre for datacentre_number, datacentre in enumerate(self._datacentres_curr_state)},
+      "machines_curr_state": tuple(self._machines_curr_state),
       "workload": self._workload,
       "workload_datacentre": self._workload_datacentre,
     }
@@ -75,48 +76,38 @@ class MultiDataCenterEnvironment(gym.Env):
   def step(self, action):
     observation = None
     reward = 0
-    terminated = self.current_time == self.end_time
+    done = self.current_time >= (len(self.machines_data) - 2)
     info = {} # Not sure what to use this for
+
+    # Apply the action
     if action == 10:
       # Do nothing
       reward = 0
     else:
-      if action < 5:
-        # First data centre
-        spare_capacity = 100 - self._datacentres_curr_state[0][str(action)]
-        if spare_capacity >= self._workload:
+      machine_picked = action
+      spare_capacity = 100 - self._machines_curr_state[machine_picked]
+      if spare_capacity >= self._workload:
           reward = 100
-        else:
-          reward = max(0, int(spare_capacity - self._workload))
-        
-        # Half the reward if the datacentre is not where the workload originated
-        if self._workload_datacentre != 0:
-          reward /= 2
       else:
-        # Second data centre
-        spare_capacity = 100 - self._datacentres_curr_state[1][str(action - 5)]
-        if spare_capacity >= self._workload:
-          reward = 100
-        else:
-          reward = max(0, int(spare_capacity - self._workload))
-        
-        # Half the reward if the datacentre is not where the workload originated
-        if self._workload_datacentre != 1:
+        reward = max(0, int(spare_capacity - self._workload))
+
+      # Half the reward if the datacentre is not where the workload originated
+        if self._workload_datacentre != self.datacentre_mapping[machine_picked]:
           reward /= 2
     
-    if not terminated:
-      # Advance the time
-      self.current_time += 1
-      self._datacentres_curr_state = [{f"{i}": datacentre[machine_id].loc[self.current_time, 'cpu_util_percent'] for (i, machine_id) in enumerate(datacentre)} for datacentre in self.datacentres]
+    # Advance the time
+    self.current_time = 0
+    # Advance the state of the simulation
+    self._workload = self._generate_workload()
+    self._workload_datacentre = self._get_workload_datacentre()
+    self._machines_curr_state: list[np.float32] = [machine_data[0] for machine_data in self.machines_data]
 
-      self._workload = self._generate_workload()
-      self._workload_datacentre = self._get_workload_datacentre()
-      observation = {
-        **{f"{datacentre_number}": datacentre for datacentre_number, datacentre in enumerate(self._datacentres_curr_state)},
-        "workload": self._workload,
-        "workload_datacentre": self._workload_datacentre,
-      }
+    observation = {
+      "machines_curr_state": tuple(self._machines_curr_state),
+      "workload": self._workload,
+      "workload_datacentre": self._workload_datacentre,
+    }
 
-    return observation, reward, terminated, False, info
+    return observation, reward, done, False, info
     
     
