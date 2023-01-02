@@ -8,7 +8,7 @@ class MultiDataCenterEnvironment(gym.Env):
 
   def _generate_workload(self):
     cpu_requirement = np.random.rand() * 100
-    return cpu_requirement
+    return np.float32(cpu_requirement)
   
   def _get_workload_datacentre(self, epsilon=0.5):
     r = np.random.rand()
@@ -21,7 +21,7 @@ class MultiDataCenterEnvironment(gym.Env):
     # super(MultiDataCenterEnvironment, self).__init__()
     
     assert len(machines_data) > 0
-    assert machines_data[0] > 0
+    assert len(machines_data[0]) > 0
     assert num_datacentres <= len(machines_data)
 
     self.num_datacentres = num_datacentres
@@ -32,7 +32,7 @@ class MultiDataCenterEnvironment(gym.Env):
     self.current_time = 0
     # Current state of the simulation
     self._workload = self._generate_workload()
-    self._workload_datacentre = self._get_workload_datacentre()
+    self._workload_datacentre = 0
     self._machines_curr_state: list[np.float32] = [machine_data[0] for machine_data in self.machines_data]
 
     # (cpu1, cpu2, ..., cpu10, workload_requirement, data_center)
@@ -61,11 +61,11 @@ class MultiDataCenterEnvironment(gym.Env):
     # Current state of the simulation
     self._workload = self._generate_workload()
     self._workload_datacentre = self._get_workload_datacentre()
-    self._machines_curr_state: list[np.float32] = [machine_data[0] for machine_data in self.machines_data]
+    self._machines_curr_state: list[np.float32] = [np.array([machine_data[0]]) for machine_data in self.machines_data]
 
     observation = {
       "machines_curr_state": tuple(self._machines_curr_state),
-      "workload": self._workload,
+      "workload": np.array([self._workload]),
       "workload_datacentre": self._workload_datacentre,
     }
     info = {} # Not sure what to use this for
@@ -96,15 +96,15 @@ class MultiDataCenterEnvironment(gym.Env):
           reward /= 2
     
     # Advance the time
-    self.current_time = 0
+    self.current_time += 1
     # Advance the state of the simulation
     self._workload = self._generate_workload()
     self._workload_datacentre = self._get_workload_datacentre()
-    self._machines_curr_state: list[np.float32] = [machine_data[0] for machine_data in self.machines_data]
+    self._machines_curr_state: list[np.float32] = [np.array([machine_data[self.current_time]]) for machine_data in self.machines_data]
 
     observation = {
       "machines_curr_state": tuple(self._machines_curr_state),
-      "workload": self._workload,
+      "workload": np.array([self._workload]),
       "workload_datacentre": self._workload_datacentre,
     }
 
