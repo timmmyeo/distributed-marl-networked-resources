@@ -46,11 +46,6 @@ class MultiDataCenterEnvironment(gym.Env):
     
     # One action per machine and a no-op; choose to send the workload to a machine, or choose not to do anything
     self.action_space = spaces.Discrete(len(machines_data) + 1)
-  
-  # def _get_obs(self):
-  #   return {
-      
-  #   }
 
   def reset(self, seed=None, options=None):
     # We need the following line to seed self.np_random
